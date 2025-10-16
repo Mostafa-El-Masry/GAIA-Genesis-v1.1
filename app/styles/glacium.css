@@ -109,3 +109,72 @@ body {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(108, 202, 255, 0.3);
 }
+
+/* --- NAVBAR --- */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-lg);
+  backdrop-filter: var(--glass-depth-2);
+  background: rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 1000;
+}
+
+.nav-left .nav-logo {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--color-fg);
+  text-decoration: none;
+}
+
+.nav-center {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--color-fg);
+  opacity: 0.8;
+  font-weight: 500;
+  transition: opacity var(--transition-fast);
+}
+
+.nav-link:hover {
+  opacity: 1;
+}
+
+.nav-link.active {
+  border-bottom: 2px solid var(--accent);
+  opacity: 1;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-fg);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+.nav-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Add padding to body content under fixed nav */
+.page-with-nav {
+  padding-top: 80px;
+}
