@@ -6,7 +6,7 @@ import { useTheme } from "../providers/ThemeProvider";
 import "../styles/glacium.css";
 
 const scenes = [
-  { name: "Dashboard", path: "/" },
+  { name: "Dashboard", path: "/dashboard" },
   { name: "Gallery", path: "/Gallery" },
   { name: "Apollo", path: "/Apollo" },
   { name: "Health", path: "/Healthtracker" },
