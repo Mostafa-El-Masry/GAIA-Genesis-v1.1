@@ -1,0 +1,44 @@
+{
+  "images": [
+    {
+      "src": "/media/images/sample1.jpg",
+      "title": "Sample 1"
+    },
+    {
+      "src": "/media/images/sample2.jpg",
+      "title": "Sample 2"
+    },
+    {
+      "src": "/media/images/sample3.jpg",
+      "title": "Sample 3"
+    },
+    {
+      "src": "/media/images/sample4.jpg",
+      "title": "Sample 4"
+    },
+    {
+      "src": "/media/images/sample5.jpg",
+      "title": "Sample 5"
+    }
+  ],
+  "videos": [
+    {
+      "src": "/media/videos/sample1.mp4",
+      "title": "Sample Video 1",
+      "poster": "/media/previews/sample1_thumb_001.jpg",
+      "preview": {
+        "pattern": "{dir}/{base}_{i3}.jpg",
+        "count": 6
+      }
+    },
+    {
+      "src": "/media/videos/sample2.mp4",
+      "title": "Sample Video 2",
+      "poster": "/media/previews/sample2_thumb_001.jpg",
+      "preview": {
+        "pattern": "{dir}/{base}_some_{i3}.jpg",
+        "count": 6
+      }
+    }
+  ]
+}
