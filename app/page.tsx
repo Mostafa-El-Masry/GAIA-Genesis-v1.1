@@ -41,8 +41,8 @@ export default function HomePage() {
         🌍 GAIA Genesis Dashboard
       </h1>
       <p className="text-center mb-10 text-gray-600">
-        Welcome back, Creator.  
-        From here, you can access every part of GAIA — her senses, her memory, and her mind.
+        Welcome back, Creator. From here, you can access every part of GAIA —
+        her senses, her memory, and her mind.
       </p>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

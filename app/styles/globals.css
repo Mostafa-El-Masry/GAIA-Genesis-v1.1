@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 
+
 .glass-card {
   background: var(--bg-glass);
   backdrop-filter: blur(var(--blur)) saturate(1.2);

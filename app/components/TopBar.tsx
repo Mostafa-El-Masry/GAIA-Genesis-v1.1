@@ -1,5 +1,5 @@
 import React from "react";
-import "./glacium.css";
+import "../styles/glacium.css";
 
 export default function TopBar() {
   return (
