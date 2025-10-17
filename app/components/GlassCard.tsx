@@ -7,29 +7,56 @@ interface GlassCardProps {
   title: string;
   value: string;
   link?: string;
+  icon?: string;
+  trend?: "up" | "down" | "good" | "warning" | "alert";
 }
 
-const GlassCard: React.FC<GlassCardProps> = ({ title, value, link }) => {
+const GlassCard: React.FC<GlassCardProps> = ({
+  title,
+  value,
+  link,
+  icon,
+  trend,
+}) => {
   const content = (
     <div
-      className="glass"
+      className="glass-card"
       style={{
-        padding: "1.5rem",
-        minHeight: "140px",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        transition: "transform 0.2s ease",
       }}
     >
-      <h3 style={{ margin: 0, fontSize: "1.1rem", opacity: 0.85 }}>{title}</h3>
-      <p style={{ fontSize: "1.5rem", fontWeight: "bold", margin: 0 }}>
+      <div className="card-header">
+        {icon && <span className="card-icon">{icon}</span>}
+        <h3 className="card-title">{title}</h3>
+      </div>
+
+      <div className="card-value">
         {value}
-      </p>
+        {trend && (
+          <span className={`trend-indicator ${trend}`}>
+            {trend === "up" && "↗"}
+            {trend === "down" && "↘"}
+            {trend === "good" && "✓"}
+            {trend === "warning" && "⚠"}
+            {trend === "alert" && "!"}
+          </span>
+        )}
+      </div>
     </div>
   );
   return link ? (
-    <Link href={link} style={{ textDecoration: "none", color: "inherit" }}>
+    <Link
+      href={link}
+      style={{
+        textDecoration: "none",
+        color: "inherit",
+        display: "block",
+        height: "100%",
+      }}
+    >
       {content}
     </Link>
   ) : (

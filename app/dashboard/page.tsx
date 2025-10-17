@@ -52,33 +52,52 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   return (
-    <main
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-        gap: "1.5rem",
-      }}
-    >
-      <GlassCard
-        title="Finance Balance"
-        value={`$${balance.toLocaleString()}`}
-        link="/wealth"
-      />
-      <GlassCard
-        title="Avg Glucose"
-        value={`${avgGlucose} mg/dL`}
-        link="/health"
-      />
-      <GlassCard
-        title="Apollo Notes"
-        value={`${apolloNotes} entries`}
-        link="/apollo"
-      />
-      <GlassCard
-        title="Gallery Items"
-        value={`${galleryItems}`}
-        link="/gallery"
-      />
+    <main className="page-with-nav">
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "var(--space-lg)",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "var(--space-lg)",
+            width: "100%",
+          }}
+        >
+          <GlassCard
+            title="Finance Balance"
+            value={`$${balance.toLocaleString()}`}
+            link="/wealth"
+            icon="💰"
+            trend={balance >= 0 ? "up" : "down"}
+          />
+          <GlassCard
+            title="Avg Glucose"
+            value={`${avgGlucose} mg/dL`}
+            link="/health"
+            icon="❤️"
+            trend={
+              avgGlucose < 140 ? "good" : avgGlucose < 180 ? "warning" : "alert"
+            }
+          />
+          <GlassCard
+            title="Apollo Notes"
+            value={`${apolloNotes} entries`}
+            link="/apollo"
+            icon="📝"
+          />
+          <GlassCard
+            title="Gallery Items"
+            value={galleryItems.toString()}
+            link="/gallery"
+            icon="🖼️"
+          />
+        </div>
+      </div>
     </main>
   );
 };

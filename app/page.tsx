@@ -36,32 +36,78 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto mt-12 p-6 text-gray-800">
-      <h1 className="text-4xl font-bold text-center mb-8">
-        🌍 GAIA Genesis Dashboard
-      </h1>
-      <p className="text-center mb-10 text-gray-600">
-        Welcome back, Creator. From here, you can access every part of GAIA —
-        her senses, her memory, and her mind.
-      </p>
+    <div className="page-with-nav">
+      <div className="max-w-5xl mx-auto p-6">
+        <h1 className="text-4xl font-bold text-center mb-4">🌍 GAIA Genesis</h1>
+        <p
+          style={{
+            textAlign: "center",
+            marginBottom: "var(--space-xl)",
+            color: "var(--text-secondary)",
+            fontSize: "var(--font-size-lg)",
+          }}
+        >
+          Welcome back, Creator. From here, you can access every part of GAIA —
+          her senses, her memory, and her mind.
+        </p>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {modules.map((m) => (
-          <Link
-            key={m.name}
-            href={m.path}
-            className="border rounded-lg shadow-sm hover:shadow-md transition bg-white p-6 flex flex-col items-center text-center"
-          >
-            <div className="text-5xl mb-3">{m.icon}</div>
-            <h2 className="text-xl font-semibold mb-1">{m.name}</h2>
-            <p className="text-sm text-gray-600">{m.desc}</p>
-          </Link>
-        ))}
-      </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {modules.map((m) => (
+            <Link
+              key={m.name}
+              href={m.path}
+              className="glass"
+              style={{
+                padding: "var(--space-lg)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                textDecoration: "none",
+                color: "var(--color-fg)",
+                transition: "all var(--transition-fast)",
+                borderColor: "var(--border-light)",
+                background: "var(--color-bg)",
+              }}
+            >
+              <div
+                style={{ fontSize: "3rem", marginBottom: "var(--space-md)" }}
+              >
+                {m.icon}
+              </div>
+              <h2
+                style={{
+                  fontSize: "var(--font-size-lg)",
+                  fontWeight: "var(--font-weight-bold)",
+                  marginBottom: "var(--space-xs)",
+                  color: "var(--color-fg)",
+                }}
+              >
+                {m.name}
+              </h2>
+              <p
+                style={{
+                  fontSize: "var(--font-size-sm)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                {m.desc}
+              </p>
+            </Link>
+          ))}
+        </div>
 
-      <div className="mt-10 text-center text-sm text-gray-500">
-        <p>GAIA Genesis v1.00 — Phase 1 Complete</p>
-        <p>© 2025 Sasa</p>
+        <footer
+          style={{
+            marginTop: "var(--space-xl)",
+            textAlign: "center",
+            fontSize: "var(--font-size-sm)",
+            color: "var(--text-secondary)",
+          }}
+        >
+          <p>GAIA Genesis v1.10 — Phase 2 </p>
+          <p>© 2025 Sasa</p>
+        </footer>
       </div>
     </div>
   );
