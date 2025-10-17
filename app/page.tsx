@@ -11,7 +11,7 @@ export default function HomePage() {
     },
     {
       name: "Health Tracker",
-      path: "/Healthtracker",
+      path: "/health",
       icon: "💉",
       desc: "Record glucose levels, insulin doses, and medical notes.",
     },

@@ -9,8 +9,8 @@ const scenes = [
   { name: "Dashboard", path: "/dashboard" },
   { name: "Gallery", path: "/Gallery" },
   { name: "Apollo", path: "/Apollo" },
-  { name: "Health", path: "/Healthtracker" },
-  { name: "Wealth", path: "/WealthTracker" },
+  { name: "Health", path: "/health" },
+  { name: "Wealth", path: "/wealth" },
 ];
 
 const TopNav: React.FC = () => {
