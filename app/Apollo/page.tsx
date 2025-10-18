@@ -8,40 +8,52 @@ import GraphView from "../components/apollo/GraphView";
 // import { parseQuery } from "../utils/search"; // unused
 
 export default function ApolloPage() {
-  const store = useApolloStore();
+  const {
+    ready,
+    notes,
+    create,
+    update,
+    remove,
+    resolveLinks,
+    backlinks: getBacklinks,
+    search,
+    daily,
+    exportJSON,
+    exportMD,
+  } = useApolloStore();
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (store.ready && !currentId) {
-      if (store.notes.length) setCurrentId(store.notes[0].id);
+    if (ready && !currentId) {
+      if (notes.length) setCurrentId(notes[0].id);
       else
         setCurrentId(
-          store.create({
+          create({
             title: "Welcome to Apollo",
             content_md: "Start writing…",
           }).id
         );
     }
-  }, [store.ready]);
+  }, [ready, currentId, notes, create]);
 
   const current = useMemo(
-    () => store.notes.find((n: ApolloNote) => n.id === currentId) || null,
-    [store.notes, currentId]
+    () => notes.find((n: ApolloNote) => n.id === currentId) || null,
+    [notes, currentId]
   );
 
   const list = useMemo(() => {
-    if (!query.trim()) return store.notes;
-    return store.search(query);
-  }, [store.notes, query]);
+    if (!query.trim()) return notes;
+    return search(query);
+  }, [notes, query, search]);
 
   const onChange = (n: ApolloNote) => {
-    store.update(n.id, n);
+    update(n.id, n);
   };
 
   const onSave = () => {
     if (!current) return;
-    store.resolveLinks(current.id);
+    resolveLinks(current.id);
     alert("Saved");
   };
 
@@ -50,17 +62,17 @@ export default function ApolloPage() {
     const ok = confirm("Delete this note?");
     if (!ok) return;
     const id = current.id;
-    store.remove(id);
-    const rest = store.notes.filter((n: any) => n.id !== id);
+    remove(id);
+    const rest = notes.filter((n: ApolloNote) => n.id !== id);
     setCurrentId(rest[0]?.id || null);
   };
 
   const openDaily = () => {
-    const n = store.daily();
+    const n = daily();
     setCurrentId(n.id);
   };
 
-  const backlinks = current ? store.backlinks(current.id) : [];
+  const backlinks = current ? getBacklinks(current.id) : [];
 
   return (
     <main className="apollo-wrap">
@@ -79,14 +91,14 @@ export default function ApolloPage() {
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button
             className="btn btn-primary"
-            onClick={() => setCurrentId(store.create().id)}
+            onClick={() => setCurrentId(create().id)}
           >
             ＋ New
           </button>
           <button className="btn btn-outline" onClick={openDaily}>
             🗓 Daily
           </button>
-          <button className="btn btn-outline" onClick={store.exportJSON}>
+          <button className="btn btn-outline" onClick={exportJSON}>
             Export JSON
           </button>
         </div>
@@ -129,13 +141,13 @@ export default function ApolloPage() {
         {current && (
           <Backlinks items={backlinks} onOpen={(id) => setCurrentId(id)} />
         )}
-        <GraphView notes={store.notes} onOpen={(id) => setCurrentId(id)} />
+        <GraphView notes={notes} onOpen={(id) => setCurrentId(id)} />
 
         {current && (
           <div className="apollo-actions" style={{ marginTop: "0.5rem" }}>
             <button
               className="btn btn-outline"
-              onClick={() => store.exportMD(current.id)}
+              onClick={() => exportMD(current.id)}
             >
               Export current as .md
             </button>

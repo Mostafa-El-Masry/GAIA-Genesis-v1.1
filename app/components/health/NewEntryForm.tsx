@@ -28,8 +28,9 @@ export default function NewEntryForm() {
       store.add({ ts, glucose: g ?? undefined, insulin: i ?? undefined, contexts });
       setOk("Saved");
       setGlucose(""); setInsulin(""); setContexts([]);
-    } catch (e:any) {
-      setErr(e.message || "Failed to save");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to save";
+      setErr(message);
     }
   };
 

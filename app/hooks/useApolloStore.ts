@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { parseQuery, matches } from "../utils/search";
 
 export type ModuleRef = { module: "wealth"|"health"|"gallery"|"timeline"|"dashboard"|"apollo"; id: string };
@@ -19,6 +19,8 @@ const STORAGE_KEY = "gaia_apollo";
 const SCHEMA_VERSION_KEY = "gaia_apollo_version";
 const VERSION = 2;
 
+type StoredApolloNote = Partial<ApolloNote> & { content?: string };
+
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
@@ -34,6 +36,20 @@ function extractWikiLinks(md: string): string[] {
   return titles;
 }
 
+const toApolloNote = (note: StoredApolloNote): ApolloNote => ({
+  id: note.id ?? uid(),
+  title: note.title ?? "Untitled",
+  content_md: note.content_md ?? note.content ?? "",
+  tags: Array.isArray(note.tags) ? note.tags : [],
+  createdAt: note.createdAt ?? nowIso(),
+  updatedAt: note.updatedAt ?? nowIso(),
+  links: Array.isArray(note.links) ? note.links : [],
+  moduleRefs: Array.isArray(note.moduleRefs) ? note.moduleRefs : [],
+});
+
+const isStoredApolloNote = (value: unknown): value is StoredApolloNote =>
+  typeof value === "object" && value !== null;
+
 export function useApolloStore() {
   const [notes, setNotes] = useState<ApolloNote[]>([]);
   const [ready, setReady] = useState(false);
@@ -42,25 +58,24 @@ export function useApolloStore() {
   useEffect(() => {
     const ver = Number(localStorage.getItem(SCHEMA_VERSION_KEY) || 1);
     const raw = localStorage.getItem(STORAGE_KEY);
-    let data: any[] = [];
-    try { data = raw ? JSON.parse(raw) : []; } catch { data = []; }
+    let stored: StoredApolloNote[] = [];
+    try {
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        stored = parsed.filter(isStoredApolloNote);
+      }
+    } catch {
+      stored = [];
+    }
+
+    const normalized = stored.map(toApolloNote);
 
     if (ver < VERSION) {
-      // migrate v1 -> v2
-      data = data.map((n: any) => ({
-        id: n.id || uid(),
-        title: n.title || "Untitled",
-        content_md: n.content_md || n.content || "",
-        tags: Array.isArray(n.tags) ? n.tags : [],
-        createdAt: n.createdAt || nowIso(),
-        updatedAt: n.updatedAt || nowIso(),
-        links: Array.isArray(n.links) ? n.links : [],
-        moduleRefs: Array.isArray(n.moduleRefs) ? n.moduleRefs : [],
-      }));
       localStorage.setItem(SCHEMA_VERSION_KEY, String(VERSION));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     }
-    setNotes(data);
+
+    setNotes(normalized);
     setReady(true);
   }, []);
 

@@ -7,6 +7,13 @@ export type SearchOps = {
   after?: string;  // ISO date
 };
 
+export type SearchableNote = {
+  createdAt: string;
+  title: string;
+  content_md: string;
+  tags?: string[];
+};
+
 export function parseQuery(q: string): SearchOps {
   const ops: SearchOps = { text: "" };
   const parts = q.match(/(\w+:\S+)|("[^"]+")|(\S+)/g) || [];
@@ -28,7 +35,7 @@ export function parseQuery(q: string): SearchOps {
   return ops;
 }
 
-export function matches(ops: SearchOps, note: any) {
+export function matches(ops: SearchOps, note: SearchableNote) {
   const inRange = (date: string) => {
     const d = new Date(date).getTime();
     if (ops.after && d < new Date(ops.after).getTime()) return false;

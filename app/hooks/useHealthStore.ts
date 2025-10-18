@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export type HealthRecord = {
   id: string;
@@ -20,11 +20,6 @@ const PREFS_KEY = "healthPrefs";
 const DEFAULT_PREFS: HealthPrefs = { low: 70, high: 180 };
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
-
-function parseNumber(n: any): number|null {
-  const x = Number(n);
-  return Number.isFinite(x) ? x : null;
-}
 
 export function useHealthStore() {
   const [records, setRecords] = useState<HealthRecord[]>([]);
@@ -134,11 +129,13 @@ export function useHealthStore() {
       const date = cols[idx.date]?.replace(/"/g,"") || "";
       const time = cols[idx.time]?.replace(/"/g,"") || "00:00";
       const ts = new Date(`${date}T${time}:00`).toISOString();
-      const glucose = cols[idx.glucose] ? Number(cols[idx.glucose].replace(/"/g,"")) : null;
-      const insulin = cols[idx.insulin] ? Number(cols[idx.insulin].replace(/"/g,"")) : null;
+      const glucoseRaw = cols[idx.glucose] ? Number(cols[idx.glucose].replace(/"/g,"")) : null;
+      const insulinRaw = cols[idx.insulin] ? Number(cols[idx.insulin].replace(/"/g,"")) : null;
       const contexts = (cols[idx.contexts]||"").replace(/^"|"$/g,"").split(";").map(s=>s.trim()).filter(Boolean);
       try {
-        const r = add({ ts, glucose: Number.isFinite(glucose as any) ? glucose : undefined, insulin: Number.isFinite(insulin as any) ? insulin : undefined, contexts });
+        const glucoseValue = typeof glucoseRaw === "number" && Number.isFinite(glucoseRaw) ? glucoseRaw : undefined;
+        const insulinValue = typeof insulinRaw === "number" && Number.isFinite(insulinRaw) ? insulinRaw : undefined;
+        const r = add({ ts, glucose: glucoseValue, insulin: insulinValue, contexts });
         added.push(r);
       } catch(e) {
         // ignore duplicates/invalids
