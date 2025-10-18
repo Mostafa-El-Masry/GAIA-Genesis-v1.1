@@ -74,9 +74,10 @@ function drawBarChart(canvas: HTMLCanvasElement, data: {label:string,value:numbe
 
 export default function HealthCharts() {
   const store = useHealthStore();
+  const { prefs, forLastDays } = store;
   const [range, setRange] = useState<Range>(30);
 
-  const list = useMemo(() => store.forLastDays(range), [store.records, range]);
+  const list = useMemo(() => forLastDays(range), [forLastDays, range]);
   const glucoseSeries = useMemo(() => {
     return list
       .filter(r => typeof r.glucose === "number")
@@ -115,13 +116,13 @@ export default function HealthCharts() {
 
   useEffect(() => {
     if (lineRef.current) {
-      const min = Math.min(store.prefs.low - 40, ...glucoseSeries.map(d=>d.y));
-      const max = Math.max(store.prefs.high + 40, ...glucoseSeries.map(d=>d.y));
-      drawLineChart(lineRef.current, glucoseSeries, { low: store.prefs.low, high: store.prefs.high, min: Math.max(30, min), max: Math.min(400, max) });
+      const min = Math.min(prefs.low - 40, ...glucoseSeries.map(d=>d.y));
+      const max = Math.max(prefs.high + 40, ...glucoseSeries.map(d=>d.y));
+      drawLineChart(lineRef.current, glucoseSeries, { low: prefs.low, high: prefs.high, min: Math.max(30, min), max: Math.min(400, max) });
     }
-    if (bar1Ref.current) drawBarChart(bar1Ref.current, dailyAvg, { band: [store.prefs.low, store.prefs.high] });
+    if (bar1Ref.current) drawBarChart(bar1Ref.current, dailyAvg, { band: [prefs.low, prefs.high] });
     if (bar2Ref.current) drawBarChart(bar2Ref.current, insulinPerDay);
-  }, [glucoseSeries, dailyAvg, insulinPerDay, store.prefs.low, store.prefs.high, range]);
+  }, [glucoseSeries, dailyAvg, insulinPerDay, prefs.low, prefs.high]);
 
   return (
     <div className="health-charts">

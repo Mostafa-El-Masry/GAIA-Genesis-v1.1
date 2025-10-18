@@ -1,9 +1,12 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "../../styles/gallery.css";
 import { ImageItem } from "../../hooks/useMediaManifest";
 
 type View = "slideshow" | "grid";
+
+const preferredExtensions = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
 
 export default function ImageGallery({ items }: { items: ImageItem[] }) {
   const [view, setView] = useState<View>("slideshow");
@@ -24,10 +27,9 @@ export default function ImageGallery({ items }: { items: ImageItem[] }) {
     return s;
   }, [items]);
 
-  const preferred = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
   const filters = useMemo(() => {
     const out: string[] = [];
-    for (const p of preferred) if (allExts.has(p)) out.push(p);
+    for (const p of preferredExtensions) if (allExts.has(p)) out.push(p);
     // add any other extensions discovered
     for (const e of Array.from(allExts).sort())
       if (!out.includes(e) && e) out.push(e);
@@ -111,7 +113,7 @@ export default function ImageGallery({ items }: { items: ImageItem[] }) {
   // ensure index is valid when orderedItems changes
   useEffect(() => {
     if (index >= orderedItems.length) setIndex(0);
-  }, [orderedItems.length]);
+  }, [index, orderedItems.length]);
 
   // current slide src comes from orderedItems
   const count = orderedItems.length;

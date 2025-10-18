@@ -1,16 +1,16 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { Suspense } from "react";
 import "../styles/gallery.css";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMediaManifest } from "../hooks/useMediaManifest";
 import ImageGallery from "./components/ImageGallery";
 import VideoGallery from "./components/VideoGallery";
 
-export default function GalleryPage() {
+function GalleryPageContent() {
   const params = useSearchParams();
   const router = useRouter();
   const type = params.get("type") || "ImageGallery";
-  const { images, videos, loadedFromManifest } = useMediaManifest();
+  const { images, videos } = useMediaManifest();
 
   const setType = (next: "ImageGallery" | "VideoGallery") => {
     // Use the current pathname to avoid casing/path issues
@@ -43,5 +43,13 @@ export default function GalleryPage() {
         <VideoGallery items={videos} />
       )}
     </main>
+  );
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={<main className="gallery-container">Loading…</main>}>
+      <GalleryPageContent />
+    </Suspense>
   );
 }

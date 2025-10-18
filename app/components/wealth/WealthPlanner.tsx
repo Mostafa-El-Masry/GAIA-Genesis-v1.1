@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import "../../styles/wealth.css";
 import { useWealthPlanner } from "../../hooks/useWealthPlanner";
 

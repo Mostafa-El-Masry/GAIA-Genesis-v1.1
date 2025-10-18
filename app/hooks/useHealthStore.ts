@@ -137,7 +137,7 @@ export function useHealthStore() {
         const insulinValue = typeof insulinRaw === "number" && Number.isFinite(insulinRaw) ? insulinRaw : undefined;
         const r = add({ ts, glucose: glucoseValue, insulin: insulinValue, contexts });
         added.push(r);
-      } catch(e) {
+      } catch {
         // ignore duplicates/invalids
       }
     }
