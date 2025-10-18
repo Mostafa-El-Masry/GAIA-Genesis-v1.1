@@ -190,8 +190,8 @@
 }
 
 .video-player {
-  position: sticky;
-  top: 80px; /* under the fixed navbar height + spacing */
+  /* Flow with the document instead of being sticky */
+  position: static;
   z-index: 0;
   border-radius: var(--radius-lg);
   overflow: hidden;

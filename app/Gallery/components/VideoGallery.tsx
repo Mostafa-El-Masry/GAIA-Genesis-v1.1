@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "../../styles/gallery.css";
 import { VideoItem } from "../../hooks/useMediaManifest";
 import { useHoverPreview } from "../../hooks/useHoverPreview";
@@ -37,6 +37,9 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
   const [showMostViewed, setShowMostViewed] = useState(false);
   const [viewCounts, setViewCounts] =
     useState<Record<string, number>>(loadViewCounts);
+
+  const playerRef = useRef<HTMLDivElement | null>(null);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
 
   // Load saved filters
   useEffect(() => {
@@ -113,6 +116,22 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
     setCurrent(video);
     const newCount = incrementViews(video.src);
     setViewCounts((prev) => ({ ...prev, [video.src]: newCount }));
+
+    // Scroll the player into view and attempt autoplay
+    // Delay slightly to allow React to render the new video element with updated key
+    setTimeout(() => {
+      if (playerRef.current) {
+        playerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      // Try to autoplay the video element if present
+      const v = videoElRef.current;
+      if (v) {
+        // Ensure the src is up-to-date (React will recreate element due to key)
+        // Play returns a promise on modern browsers; catch rejection to avoid unhandled promises
+        const p = v.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      }
+    }, 120);
   };
 
   return (
@@ -154,13 +173,14 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
         </div>
       </div>
 
-      <div className="video-player glass">
+      <div className="video-player glass" ref={playerRef}>
         {current ? (
           <>
             <video
               key={current.src}
-              src={current.src}
-              poster={current.poster}
+              ref={(el) => { videoElRef.current = el; }}
+              src={encodeURI(current.src)}
+              poster={current.poster ? encodeURI(current.poster) : undefined}
               controls
               preload="metadata"
             />
@@ -221,10 +241,10 @@ function VideoCard({
     >
       {/* Poster or first frame */}
       {!hasFrames && item.poster ? (
-        <img src={item.poster} alt={item.title || "Poster"} />
+        <img src={encodeURI(item.poster)} alt={item.title || "Poster"} />
       ) : hasFrames && current ? (
         <div className="preview-overlay" style={{ display: "block" }}>
-          <img src={current} alt={item.title || "Preview"} />
+          <img src={encodeURI(current)} alt={item.title || "Preview"} />
         </div>
       ) : (
         <div
