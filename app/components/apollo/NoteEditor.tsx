@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/apollo.css";
-import { ApolloNote, ModuleRef, useApolloStore } from "../../hooks/useApolloStore";
+import { ApolloNote } from "../../hooks/useApolloStore";
 import { mdToHtml } from "../../utils/markdown";
 
 type Props = {
@@ -19,7 +19,7 @@ export default function NoteEditor({ note, onChange, onSave, onDelete }: Props) 
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content_md);
-  }, [note.id]);
+  }, [note.id, note.title, note.content_md]);
 
   const tags = note.tags || [];
   const addTag = () => {

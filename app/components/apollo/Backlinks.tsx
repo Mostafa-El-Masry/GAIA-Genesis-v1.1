@@ -2,8 +2,6 @@
 import React from "react";
 import "../../styles/apollo.css";
 import { ApolloNote } from "../../hooks/useApolloStore";
-import Link from "next/link";
-
 export default function Backlinks({ items, onOpen }:{ items: ApolloNote[]; onOpen: (id:string)=>void }) {
   if (!items.length) return null;
   return (

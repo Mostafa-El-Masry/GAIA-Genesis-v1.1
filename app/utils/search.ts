@@ -54,7 +54,9 @@ export function matches(ops: SearchOps, note: SearchableNote) {
   }
 
   if (ops.tag && ops.tag.length) {
-    if (!note.tags || !ops.tag.every(t => note.tags.includes(t))) return false;
+    const noteTags = note.tags;
+    if (!noteTags) return false;
+    if (!ops.tag.every((t) => noteTags.includes(t))) return false;
   }
   return true;
 }
