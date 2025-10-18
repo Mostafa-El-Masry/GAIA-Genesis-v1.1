@@ -42,3 +42,12 @@ next-env.d.ts
 
 # local video files
 *.mp4
+
+#local images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webp
+
