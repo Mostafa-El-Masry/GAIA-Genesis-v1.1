@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import "../../styles/gallery.css";
 import { VideoItem } from "../../hooks/useMediaManifest";
 import { useHoverPreview } from "../../hooks/useHoverPreview";
@@ -8,6 +9,9 @@ type VideoWithViews = VideoItem & { views: number };
 
 const STORAGE_KEY = "video:viewCounts";
 const FILTER_KEY = "video:activeFilter";
+const POSITION_KEY = "video:positions";
+const VOLUME_KEY = "video:volume";
+const LAST_VIDEO_KEY = "video:lastSelected";
 
 function loadViewCounts(): Record<string, number> {
   try {
@@ -31,6 +35,43 @@ function incrementViews(videoSrc: string) {
   return counts[videoSrc];
 }
 
+function loadPositions(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(POSITION_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function savePositions(pos: Record<string, number>) {
+  try {
+    localStorage.setItem(POSITION_KEY, JSON.stringify(pos));
+  } catch (e) {}
+}
+
+function loadVolume(): number {
+  try {
+    const raw = localStorage.getItem(VOLUME_KEY);
+    return raw ? Number(raw) : 1;
+  } catch (e) {
+    return 1;
+  }
+}
+
+function saveVolume(v: number) {
+  try {
+    localStorage.setItem(VOLUME_KEY, String(v));
+  } catch (e) {}
+}
+
+function saveLastSelected(src?: string) {
+  try {
+    if (!src) localStorage.removeItem(LAST_VIDEO_KEY);
+    else localStorage.setItem(LAST_VIDEO_KEY, src);
+  } catch (e) {}
+}
+
 export default function VideoGallery({ items }: { items: VideoItem[] }) {
   const [current, setCurrent] = useState<VideoItem | null>(items[0] || null);
   const [selectedStar, setSelectedStar] = useState<string>("");
@@ -40,6 +81,8 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
 
   const playerRef = useRef<HTMLDivElement | null>(null);
   const videoElRef = useRef<HTMLVideoElement | null>(null);
+  const positionsRef = useRef<Record<string, number>>(loadPositions());
+  const [volume, setVolume] = useState<number>(loadVolume());
 
   // Load saved filters
   useEffect(() => {
@@ -52,6 +95,17 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
       }
     } catch (e) {}
   }, []);
+
+  // Restore last selected video and volume
+  useEffect(() => {
+    try {
+      const last = localStorage.getItem(LAST_VIDEO_KEY);
+      if (last) {
+        const found = items.find((it) => it.src === last);
+        if (found) setCurrent(found);
+      }
+    } catch (e) {}
+  }, [items]);
 
   // Save filters
   useEffect(() => {
@@ -102,6 +156,38 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
     if (!current && filteredItems.length) setCurrent(filteredItems[0]);
   }, [filteredItems, current]);
 
+  // Save playback position and volume when the video element updates
+  useEffect(() => {
+    const el = videoElRef.current;
+    if (!el || !current) return undefined;
+
+    const onTime = () => {
+      try {
+        positionsRef.current[current.src] = el.currentTime;
+        // throttle saving to storage; for simplicity save on every timeupdate
+        savePositions(positionsRef.current);
+      } catch (e) {}
+    };
+
+    const onVolume = () => {
+      try {
+        const v = el.volume;
+        setVolume(v);
+        saveVolume(v);
+      } catch (e) {}
+    };
+
+    el.addEventListener("timeupdate", onTime);
+    el.addEventListener("volumechange", onVolume);
+
+    return () => {
+      try {
+        el.removeEventListener("timeupdate", onTime);
+        el.removeEventListener("volumechange", onVolume);
+      } catch (e) {}
+    };
+  }, [current, volume]);
+
   // Update current video when filters change
   useEffect(() => {
     if (filteredItems.length === 0) {
@@ -113,25 +199,42 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
 
   // Track video views
   const onVideoSelect = (video: VideoItem) => {
-    setCurrent(video);
+    // Increment views first so the saved counts are available when we flush state
     const newCount = incrementViews(video.src);
-    setViewCounts((prev) => ({ ...prev, [video.src]: newCount }));
 
-    // Scroll the player into view and attempt autoplay
-    // Delay slightly to allow React to render the new video element with updated key
-    setTimeout(() => {
+    // Use flushSync so the DOM update (mounting the <video>) happens synchronously
+    // and calling play() is treated as a user gesture by the browser.
+    flushSync(() => {
+      setCurrent(video);
+      setViewCounts((prev) => ({ ...prev, [video.src]: newCount }));
+    });
+
+    const attemptPlayAndScroll = () => {
       if (playerRef.current) {
-        playerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        playerRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
       }
-      // Try to autoplay the video element if present
       const v = videoElRef.current;
       if (v) {
-        // Ensure the src is up-to-date (React will recreate element due to key)
-        // Play returns a promise on modern browsers; catch rejection to avoid unhandled promises
         const p = v.play();
         if (p && typeof p.catch === "function") p.catch(() => {});
+        return true;
       }
-    }, 120);
+      return false;
+    };
+
+    // Try immediately (should succeed because of flushSync). If not present yet,
+    // try again on the next animation frame.
+    if (!attemptPlayAndScroll()) {
+      requestAnimationFrame(() => {
+        attemptPlayAndScroll();
+      });
+    }
+
+    // persist last selected
+    saveLastSelected(video.src);
   };
 
   return (
@@ -178,12 +281,43 @@ export default function VideoGallery({ items }: { items: VideoItem[] }) {
           <>
             <video
               key={current.src}
-              ref={(el) => { videoElRef.current = el; }}
+              ref={(el) => {
+                videoElRef.current = el;
+                // restore volume and position when video element mounts
+                if (el) {
+                  try {
+                    el.volume = volume;
+                    const pos = positionsRef.current[current.src];
+                    if (
+                      typeof pos === "number" &&
+                      !Number.isNaN(pos) &&
+                      pos > 0
+                    ) {
+                      // set currentTime if available
+                      // Some browsers may throw if metadata not loaded yet; guard with try/catch
+                      try {
+                        el.currentTime = pos;
+                      } catch (e) {
+                        // if metadata not ready, wait for loadedmetadata
+                        const onMeta = () => {
+                          try {
+                            el.currentTime = pos;
+                          } catch (ee) {}
+                          el.removeEventListener("loadedmetadata", onMeta);
+                        };
+                        el.addEventListener("loadedmetadata", onMeta);
+                      }
+                    }
+                  } catch (e) {}
+                }
+              }}
               src={encodeURI(current.src)}
               poster={current.poster ? encodeURI(current.poster) : undefined}
               controls
               preload="metadata"
             />
+            {/* Attach listeners to save time updates and volume changes */}
+            {/* Using a small wrapper effect via ref assignment above; attach events globally */}
             <div className="video-info">
               <div className="video-title">{current.title}</div>
               <div className="video-views">
@@ -223,7 +357,7 @@ function VideoCard({
     videoSrc: item.src,
     count: item.preview?.count,
     pattern: item.preview?.pattern,
-    intervalMs: 140,
+    intervalMs: 1000,
     maxProbe: 12,
   });
 

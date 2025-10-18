@@ -21,11 +21,17 @@ function splitPath(src: string) {
 
 function formatPattern(dir: string, base: string, i: number, pattern: string) {
   const i3 = String(i).padStart(3, "0");
-  return pattern
+  const raw = pattern
     .replace("{dir}", dir)
     .replace("{base}", base)
     .replace("{i}", String(i))
     .replace("{i3}", i3);
+  // ensure spaces and other characters are URL-encoded
+  try {
+    return encodeURI(raw);
+  } catch (e) {
+    return raw;
+  }
 }
 
 async function imageExists(src: string): Promise<boolean> {
@@ -50,6 +56,7 @@ export function useHoverPreview(opts: PreviewOpts) {
   const [frames, setFrames] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
   const timerRef = useRef<number | null>(null);
+  const hoveredRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,7 +66,9 @@ export function useHoverPreview(opts: PreviewOpts) {
         for (const pat of patterns) {
           const first = formatPattern(dir, base, 1, pat);
           if (await imageExists(first)) {
-            const list = Array.from({ length: count }, (_, k) => formatPattern(dir, base, k + 1, pat));
+            const list = Array.from({ length: count }, (_, k) =>
+              formatPattern(dir, base, k + 1, pat)
+            );
             if (!cancelled) setFrames(list);
             return;
           }
@@ -83,11 +92,15 @@ export function useHoverPreview(opts: PreviewOpts) {
       if (!cancelled) setFrames([]);
     }
     loadFrames();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [dir, base, patterns, count, maxProbe]);
 
   const start = () => {
-    if (timerRef.current || frames.length === 0) return;
+    hoveredRef.current = true;
+    if (timerRef.current) return;
+    if (frames.length === 0) return; // nothing to cycle yet; when frames load we'll auto-start
     timerRef.current = window.setInterval(() => {
       setIndex((i) => (i + 1) % frames.length);
     }, intervalMs);
@@ -98,7 +111,30 @@ export function useHoverPreview(opts: PreviewOpts) {
       timerRef.current = null;
       setIndex(0);
     }
+    hoveredRef.current = false;
   };
 
-  return { frames, current: frames[index] || null, start, stop, hasFrames: frames.length > 0 };
+  // If frames load while we're hovered, start the interval automatically
+  useEffect(() => {
+    if (frames.length > 0 && hoveredRef.current && !timerRef.current) {
+      timerRef.current = window.setInterval(() => {
+        setIndex((i) => (i + 1) % frames.length);
+      }, intervalMs);
+    }
+    // If frames were cleared, ensure we stop
+    if (frames.length === 0 && timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+      setIndex(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frames]);
+
+  return {
+    frames,
+    current: frames[index] || null,
+    start,
+    stop,
+    hasFrames: frames.length > 0,
+  };
 }

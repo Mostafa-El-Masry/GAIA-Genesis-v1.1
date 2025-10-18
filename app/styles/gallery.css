@@ -190,9 +190,9 @@
 }
 
 .video-player {
-  /* Flow with the document instead of being sticky */
-  position: static;
-  z-index: 0;
+  /* Flow with the document but create a stacking context so it can sit above cards */
+  position: relative;
+  z-index: 20;
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.2);
@@ -216,6 +216,8 @@
   padding: var(--space-md);
   background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent);
   color: #fff;
+  /* Let clicks go through to the native video controls underneath */
+  pointer-events: none;
 }
 
 .video-title {
